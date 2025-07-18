@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Paycheck Calculator</title>
+<style>
+  body {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 700px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .calculator {
+    background: white;
+    padding: 30px 40px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 600px;
+  }
+  h1 {
+    font-size: 28px;
+    text-align: center;
+    color: #1e40af;
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    position: relative;
+  }
+  label span.tooltip {
+    font-weight: normal;
+    font-size: 12px;
+    color: #64748b;
+    margin-left: 6px;
+    cursor: help;
+    border-bottom: 1px dotted #64748b;
+  }
+  input, select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  input:focus, select:focus {
+    border-color: #1e40af;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(30,64,175,0.2);
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 25px;
+    background: #1e40af;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #1e3a8a;
+  }
+  button.secondary {
+    background: #64748b;
+    margin-top: 10px;
+  }
+  button.secondary:hover {
+    background: #475569;
+  }
+  .error {
+    color: #dc2626;
+    margin-top: 10px;
+    font-size: 14px;
+    display: none;
+    text-align: center;
+  }
+  .results {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .progress-bar {
+    background: #e2e8f0;
+    border-radius: 8px;
+    height: 18px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: #1e40af;
+    height: 100%;
+    width: 0;
+    transition: width 0.6s ease;
+  }
+
+  /* Ad placeholder styling */
+  .adsbygoogle {
+    background-color: #d3d3d3; /* light grey */
+    border: 2px solid #4b4b4b; /* dark grey */
+    color: #4b4b4b;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+    font-style: center
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    min-height: 90px;
+  }
+
+  /* Override inline style for bottom banner for better height */
+  .bottom-ad {
+    min-height: 100px !important;
+  }
+
+  @media (max-width: 600px) {
+    body {
+      padding: 10px;
+    }
+    .calculator {
+      padding: 20px;
+    }
+  }
+</style>
+
+<!-- Google AdSense -->
+<script data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+</head>
+<body>
+<div class="container">
+  <div class="calculator">
+    <h1>My Paycheck Calculator</h1>
+
+    <!-- Top Leaderboard Ad Placeholder -->
+    <ins class="adsbygoogle" 
+         style="display:block; text-align:center;"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="1234567890">
+      Google AdSense
+    </ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+    <div id="error" class="error"></div>
+
+    <label for="state">State</label>
+    <select id="state" aria-label="State"></select>
+
+    <label for="filingStatus">Filing Status</label>
+    <select id="filingStatus" aria-label="Filing Status">
+      <option value="single">Single</option>
+      <option value="married_joint">Married Filing Jointly</option>
+      <option value="married_separate">Married Filing Separately</option>
+      <option value="head">Head of Household</option>
+    </select>
+
+    <label for="dependents">Number of Dependents (Under 17) <span class="tooltip" title="Child Tax Credit of $2,000 per dependent reduces your federal tax. State deductions/credits depend on your state and filing status.">?</span></label>
+    <input type="number" id="dependents" min="0" step="1" value="0" placeholder="0" aria-label="Number of Dependents" />
+
+    <label for="payFreq">Pay Frequency</label>
+    <select id="payFreq" aria-label="Pay Frequency">
+      <option value="weekly">Weekly</option>
+      <option value="biweekly" selected>Biweekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+
+    <label for="salaryType">Salary Type</label>
+    <select id="salaryType" onchange="toggleSalaryInputs()" aria-label="Salary Type">
+      <option value="yearly" selected>Yearly Salary</option>
+      <option value="hourly">Hourly Wage</option>
+    </select>
+
+    <div id="yearlyInput">
+      <label for="yearlySalary">Yearly Salary ($)</label>
+      <input id="yearlySalary" type="number" min="0" step="0.01" placeholder="$0" aria-label="Yearly Salary" />
+    </div>
+
+    <div id="hourlyInput" style="display:none;">
+      <label for="hourlyRate">Hourly Rate ($)</label>
+      <input id="hourlyRate" type="number" min="0" step="0.01" placeholder="$0" aria-label="Hourly Rate" />
+      <label for="hoursPerWeek">Hours per Week</label>
+      <input id="hoursPerWeek" type="number" min="0" step="0.1" placeholder="0" aria-label="Hours per Week" />
+    </div>
+
+    <label for="deductions401k">401(k) Contribution (%) <span class="tooltip" title="Percentage of gross income deducted before taxes.">?</span></label>
+    <input id="deductions401k" type="number" min="0" max="100" step="0.1" placeholder="0%" aria-label="401k Contribution Percent" />
+
+    <label for="health">Health Insurance ($ per pay period)</label>
+    <input id="health" type="number" min="0" step="0.01" placeholder="$0" aria-label="Health Insurance" />
+
+    <label for="dental">Dental Insurance ($ per pay period)</label>
+    <input id="dental" type="number" min="0" step="0.01" placeholder="$0" aria-label="Dental Insurance" />
+
+    <label for="life">Life and AD&D Insurance ($ per pay period)</label>
+    <input id="life" type="number" min="0" step="0.01" placeholder="$0" aria-label="Life Insurance" />
+
+    <label for="disability">Disability Insurance ($ per pay period)</label>
+    <input id="disability" type="number" min="0" step="0.01" placeholder="$0" aria-label="Disability Insurance" />
+
+    <label for="other">Other Deductions ($ per pay period)</label>
+    <input id="other" type="number" min="0" step="0.01" placeholder="$0" aria-label="Other Deductions" />
+
+    <label for="untaxable">Untaxable Income (e.g., remote work stipend) ($ per pay period)</label>
+    <input id="untaxable" type="number" min="0" step="0.01" placeholder="$0" aria-label="Untaxable Income" />
+
+    <!-- Mid Content Ad Block Placeholder -->
+    <ins class="adsbygoogle" 
+         style="display:block; margin: 25px auto; text-align:center;" 
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="2345678901">
+      Google AdSense
+    </ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+    <button onclick="calculatePaycheck()">Calculate Paycheck</button>
+    <button class="secondary" onclick="clearForm()">Clear All</button>
+
+    <div id="results" class="results" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Bottom Banner Ad Placeholder -->
+    <ins class="adsbygoogle bottom-ad"
+         style="display:block; margin-top:30px; text-align:center;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="3456789012"
+         data-ad-format="auto"
+         data-full-width-responsive="true">
+      Google AdSense
+    </ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+  </div>
+</div>
+
+<script>
+// Save/load localStorage for persistence
+const saveToStorage = () => {
+  const keys = ['state','filingStatus','dependents','payFreq','salaryType',
+    'yearlySalary','hourlyRate','hoursPerWeek','deductions401k',
+    'health','dental','life','disability','other','untaxable'];
+  keys.forEach(key => {
+    const el = document.getElementById(key);
+    if (el) localStorage.setItem(key, el.value);
+  });
+};
+const loadFromStorage = () => {
+  const keys = ['state','filingStatus','dependents','payFreq','salaryType',
+    'yearlySalary','hourlyRate','hoursPerWeek','deductions401k',
+    'health','dental','life','disability','other','untaxable'];
+  keys.forEach(key => {
+    const el = document.getElementById(key);
+    if (el && localStorage.getItem(key) !== null) el.value = localStorage.getItem(key);
+  });
+  toggleSalaryInputs();
+};
+window.onload = loadFromStorage;
+
+// Populate states dropdown with all 50 states plus DC
+const allStates = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
+const stateSelect = document.getElementById('state');
+for (const st of allStates) {
+  const opt = document.createElement('option');
+  opt.value = st;
+  opt.textContent = st;
+  stateSelect.appendChild(opt);
+}
+if (!localStorage.getItem('state')) stateSelect.value = 'CA';
+
+// Federal 2024 tax brackets by filing status
+const federalTaxBrackets = {
+  single: [
+    { max: 11600, rate: 0.10 },
+    { max: 47150, rate: 0.12 },
+    { max: 100525, rate: 0.22 },
+    { max: 191950, rate: 0.24 },
+    { max: 243725, rate: 0.32 },
+    { max: 609350, rate: 0.35 },
+    { max: Infinity, rate: 0.37 }
+  ],
+  married_joint: [
+    { max: 23200, rate: 0.10 },
+    { max: 94300, rate: 0.12 },
+    { max: 201050, rate: 0.22 },
+    { max: 383900, rate: 0.24 },
+    { max: 487450, rate: 0.32 },
+    { max: 731200, rate: 0.35 },
+    { max: Infinity, rate: 0.37 }
+  ],
+  married_separate: [
+    { max: 11600, rate: 0.10 },
+    { max: 47150, rate: 0.12 },
+    { max: 100525, rate: 0.22 },
+    { max: 191950, rate: 0.24 },
+    { max: 243725, rate: 0.32 },
+    { max: 365600, rate: 0.35 },
+    { max: Infinity, rate: 0.37 }
+  ],
+  head: [
+    { max: 16550, rate: 0.10 },
+    { max: 63100, rate: 0.12 },
+    { max: 100500, rate: 0.22 },
+    { max: 191950, rate: 0.24 },
+    { max: 243725, rate: 0.32 },
+    { max: 609350, rate: 0.35 },
+    { max: Infinity, rate: 0.37 }
+  ]
+};
+
+// Federal standard deductions for 2024
+const standardDeductions2024 = {
+  single: 14700,
+  married_joint: 29400,
+  married_separate: 14700,
+  head: 22100
+};
+
+// Social Security and Medicare constants
+const socialSecurityWageBase = 168900;
+const socialSecurityTaxRate = 0.062;
+const medicareTaxRate = 0.0145;
+
+// State tax brackets and deductions data
+const stateTaxData = {
+  CA: {
+    brackets: [
+      { max: 9325, rate: 0.01 },
+      { max: 22107, rate: 0.02 },
+      { max: 34892, rate: 0.04 },
+      { max: 48435, rate: 0.06 },
+      { max: 61214, rate: 0.08 },
+      { max: 312686, rate: 0.093 },
+      { max: 375221, rate: 0.103 },
+      { max: 625369, rate: 0.113 },
+      { max: Infinity, rate: 0.123 }
+    ],
+    standardDeduction: {
+      single: 4601,
+      married_joint: 9202,
+      married_separate: 4601,
+      head: 9202
+    },
+    dependentExemption: 4237,
+    dependentCredit: 0
+  },
+  NY: {
+    brackets: [
+      { max: 8500, rate: 0.04 },
+      { max: 11700, rate: 0.045 },
+      { max: 13900, rate: 0.0525 },
+      { max: 21400, rate: 0.059 },
+      { max: 80650, rate: 0.0621 },
+      { max: 215400, rate: 0.0649 },
+      { max: 1077550, rate: 0.0685 },
+      { max: Infinity, rate: 0.0882 }
+    ],
+    standardDeduction: {
+      single: 8000,
+      married_joint: 16050,
+      married_separate: 8000,
+      head: 11200
+    },
+    dependentExemption: 1000,
+    dependentCredit: 0
+  },
+  TX: {
+    brackets: [{ max: Infinity, rate: 0 }],
+    standardDeduction: {
+      single: 0,
+      married_joint: 0,
+      married_separate: 0,
+      head: 0
+    },
+    dependentExemption: 0,
+    dependentCredit: 0
+  },
+  FL: {
+    brackets: [{ max: Infinity, rate: 0 }],
+    standardDeduction: {
+      single: 0,
+      married_joint: 0,
+      married_separate: 0,
+      head: 0
+    },
+    dependentExemption: 0,
+    dependentCredit: 0
+  },
+  IL: {
+    brackets: [{ max: Infinity, rate: 0.0495 }],
+    standardDeduction: {
+      single: 2500,
+      married_joint: 5000,
+      married_separate: 2500,
+      head: 2500
+    },
+    dependentExemption: 1000,
+    dependentCredit: 0
+  },
+  PA: {
+    brackets: [{ max: Infinity, rate: 0.0307 }],
+    standardDeduction: {
+      single: 0,
+      married_joint: 0,
+      married_separate: 0,
+      head: 0
+    },
+    dependentExemption: 0,
+    dependentCredit: 0
+  },
+  DEFAULT: {
+    brackets: [{ max: Infinity, rate: 0 }],
+    standardDeduction: {
+      single: 0,
+      married_joint: 0,
+      married_separate: 0,
+      head: 0
+    },
+    dependentExemption: 0,
+    dependentCredit: 0
+  }
+};
+
+function calculateTaxByBrackets(income, brackets) {
+  let tax = 0;
+  let lastMax = 0;
+  for (const bracket of brackets) {
+    if (income > bracket.max) {
+      tax += (bracket.max - lastMax) * bracket.rate;
+      lastMax = bracket.max;
+    } else {
+      tax += (income - lastMax) * bracket.rate;
+      break;
+    }
+  }
+  return tax;
+}
+
+function calculateFederalTax(taxableIncome, filingStatus, dependents) {
+  if (taxableIncome <= 0) return 0;
+
+  let tax = 0;
+  let lastMax = 0;
+  const brackets = federalTaxBrackets[filingStatus] || federalTaxBrackets.single;
+  for (const bracket of brackets) {
+    if (taxableIncome > bracket.max) {
+      tax += (bracket.max - lastMax) * bracket.rate;
+      lastMax = bracket.max;
+    } else {
+      tax += (taxableIncome - lastMax) * bracket.rate;
+      break;
+    }
+  }
+
+  // Child tax credit per dependent = $2000 (non-refundable)
+  const childTaxCredit = 2000 * dependents;
+  tax -= childTaxCredit;
+  if (tax < 0) tax = 0;
+  return tax;
+}
+
+function calculateStateTax(annualGross, state, filingStatus, dependents) {
+  const data = stateTaxData[state] || stateTaxData.DEFAULT;
+  const stdDeduction = data.standardDeduction[filingStatus] || 0;
+  const exemption = data.dependentExemption || 0;
+  const dependentCredit = data.dependentCredit || 0;
+
+  let taxableIncomeState = annualGross - stdDeduction - (exemption * dependents);
+  if (taxableIncomeState < 0) taxableIncomeState = 0;
+
+  let tax = 0;
+  if (data.brackets) {
+    tax = calculateTaxByBrackets(taxableIncomeState, data.brackets);
+  } else {
+    const flatRate = data.brackets ? data.brackets[0].rate : 0;
+    tax = taxableIncomeState * flatRate;
+  }
+
+  tax -= dependentCredit * dependents;
+  if (tax < 0) tax = 0;
+
+  return tax;
+}
+
+function toggleSalaryInputs() {
+  const type = document.getElementById('salaryType').value;
+  document.getElementById('yearlyInput').style.display = type === 'yearly' ? 'block' : 'none';
+  document.getElementById('hourlyInput').style.display = type === 'hourly' ? 'block' : 'none';
+}
+
+function calculatePaycheck() {
+  clearError();
+
+  const state = document.getElementById('state').value;
+  const filingStatus = document.getElementById('filingStatus').value;
+  const dependents = parseInt(document.getElementById('dependents').value) || 0;
+  const payFreq = document.getElementById('payFreq').value;
+  const salaryType = document.getElementById('salaryType').value;
+
+  let annualGross = 0;
+  if (salaryType === 'yearly') {
+    const yearlySalary = parseFloat(document.getElementById('yearlySalary').value);
+    if (isNaN(yearlySalary) || yearlySalary < 0) {
+      showError('Please enter a valid yearly salary.');
+      return;
+    }
+    annualGross = yearlySalary;
+  } else {
+    const hourlyRate = parseFloat(document.getElementById('hourlyRate').value);
+    const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value);
+    if (isNaN(hourlyRate) || hourlyRate < 0) {
+      showError('Please enter a valid hourly rate.');
+      return;
+    }
+    if (isNaN(hoursPerWeek) || hoursPerWeek < 0) {
+      showError('Please enter valid hours per week.');
+      return;
+    }
+    annualGross = hourlyRate * hoursPerWeek * 52;
+  }
+
+  const deduction401kPercent = parseFloat(document.getElementById('deductions401k').value) || 0;
+  if (deduction401kPercent < 0 || deduction401kPercent > 100) {
+    showError('401(k) contribution must be between 0% and 100%.');
+    return;
+  }
+  const deduction401kAmount = (deduction401kPercent / 100) * annualGross;
+
+  const health = parseFloat(document.getElementById('health').value) || 0;
+  const dental = parseFloat(document.getElementById('dental').value) || 0;
+  const life = parseFloat(document.getElementById('life').value) || 0;
+  const disability = parseFloat(document.getElementById('disability').value) || 0;
+  const other = parseFloat(document.getElementById('other').value) || 0;
+  const untaxable = parseFloat(document.getElementById('untaxable').value) || 0;
+
+  const standardDeduction = standardDeductions2024[filingStatus] || standardDeductions2024.single;
+  let taxableIncomeFederal = annualGross - deduction401kAmount - standardDeduction;
+  if (taxableIncomeFederal < 0) taxableIncomeFederal = 0;
+
+  const federalTaxAnnual = calculateFederalTax(taxableIncomeFederal, filingStatus, dependents);
+  const socialSecurityTaxAnnual = Math.min(annualGross, socialSecurityWageBase) * socialSecurityTaxRate;
+  const medicareTaxAnnual = annualGross * medicareTaxRate;
+  const stateTaxAnnual = calculateStateTax(annualGross - deduction401kAmount, state, filingStatus, dependents);
+
+  const totalTaxAnnual = federalTaxAnnual + socialSecurityTaxAnnual + medicareTaxAnnual + stateTaxAnnual;
+
+  const periodsPerYear = payFreq === 'weekly' ? 52 : payFreq === 'biweekly' ? 26 : 12;
+
+  const grossPerPeriod = annualGross / periodsPerYear;
+  const taxPerPeriod = totalTaxAnnual / periodsPerYear;
+  const otherDeductionsPerPeriod = health + dental + life + disability + other;
+  const netPerPeriod = grossPerPeriod - taxPerPeriod - otherDeductionsPerPeriod + untaxable;
+
+  const effectiveTaxRate = (totalTaxAnnual / annualGross) * 100 || 0;
+  const federalTaxRate = (federalTaxAnnual / annualGross) * 100 || 0;
+  const stateTaxRatePercent = (stateTaxAnnual / annualGross) * 100 || 0;
+  const ssTaxRate = (socialSecurityTaxAnnual / annualGross) * 100 || 0;
+  const medicareTaxRatePercent = (medicareTaxAnnual / annualGross) * 100 || 0;
+
+  const formatMoney = val => `$${val.toFixed(2)}`;
+
+  
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  const resultHTML = `
+-----------------
+Summary:
+-----------------
+Gross Pay Per Period (${capitalize(payFreq)}): ${formatMoney(grossPerPeriod)}
+Federal Tax Per Period (${federalTaxRate.toFixed(2)}% effective): ${formatMoney(federalTaxAnnual / periodsPerYear)}
+State Tax (${state}) Per Period (${stateTaxRatePercent.toFixed(2)}% effective): ${formatMoney(stateTaxAnnual / periodsPerYear)}
+Social Security Tax Per Period (${ssTaxRate.toFixed(2)}% effective): ${formatMoney(socialSecurityTaxAnnual / periodsPerYear)}
+Medicare Tax Per Period (${medicareTaxRatePercent.toFixed(2)}% effective): ${formatMoney(medicareTaxAnnual / periodsPerYear)}
+Total Tax Rate: ${effectiveTaxRate.toFixed(2)}%
+Other Deductions Per Period: ${formatMoney(otherDeductionsPerPeriod)}
+Untaxable Income Added Per Period: ${formatMoney(untaxable)}
+
+Estimated Net Pay Per Period: ${formatMoney(netPerPeriod)}
+
+-------------------------------
+Annual Summary:
+-------------------------------
+Annual Gross Income: ${formatMoney(annualGross)}
+Annual Federal Tax: ${formatMoney(federalTaxAnnual)}
+Annual State Tax (${state}): ${formatMoney(stateTaxAnnual)}
+Annual Social Security Tax: ${formatMoney(socialSecurityTaxAnnual)}
+Annual Medicare Tax: ${formatMoney(medicareTaxAnnual)}
+Annual 401(k) Contributions: ${formatMoney(deduction401kAmount)}
+Annual Other Deductions (Health, Dental, etc.): ${formatMoney(otherDeductionsPerPeriod * periodsPerYear)}
+Annual Untaxable Income Added: ${formatMoney(untaxable * periodsPerYear)}
+Federal Standard Deduction Used: ${formatMoney(standardDeduction)}
+Federal Taxable Income Used: ${formatMoney(taxableIncomeFederal)}
+State Standard Deduction Used: ${formatMoney(stateTaxData[state]?.standardDeduction[filingStatus] || 0)}
+State Dependent Exemption Used: ${formatMoney(stateTaxData[state]?.dependentExemption * dependents || 0)}
+  `;
+
+  document.getElementById('results').innerHTML = resultHTML;
+  saveToStorage();
+}
+
+function clearForm() {
+  const keys = ['yearlySalary', 'hourlyRate', 'hoursPerWeek', 'deductions401k', 'health', 'dental', 'life', 'disability', 'other', 'untaxable', 'dependents'];
+  keys.forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.value = '';
+  });
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('error').style.display = 'none';
+  localStorage.clear();
+  toggleSalaryInputs();
+}
+
+function showError(msg) {
+  const errorDiv = document.getElementById('error');
+  errorDiv.style.display = 'block';
+  errorDiv.textContent = msg;
+}
+
+function clearError() {
+  const errorDiv = document.getElementById('error');
+  errorDiv.style.display = 'none';
+  errorDiv.textContent = '';
+}
+</script>
+</body>
+</html>
